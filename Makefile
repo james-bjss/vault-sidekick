@@ -2,7 +2,7 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
-GOVERSION ?= 1.8.1
+GOVERSION ?= 1.14.4
 HARDWARE=$(shell uname -m)
 VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
@@ -13,15 +13,15 @@ VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf 
 
 default: build
 
-build: deps
+build:
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	godep go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
-static: deps
+static:
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 docker-build:
 	@echo "--> Compiling the project"
@@ -58,10 +58,6 @@ clean:
 authors:
 	@echo "--> Updating the AUTHORS"
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
-
-deps:
-	@echo "--> Installing build dependencies"
-	@go get github.com/tools/godep
 
 vet:
 	@echo "--> Running go tool vet $(VETARGS) ."
