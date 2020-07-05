@@ -1,3 +1,5 @@
+// Package sidekick the main vault-sidekick package
+
 /*
 Copyright 2015 Home Office All rights reserved.
 
@@ -14,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package sidekick
 
 import (
 	"errors"
@@ -144,7 +146,7 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the jitter option: %s is invalid, should be in duration format", value)
 				}
 				rn.maxJitter = maxJitter
-			case optionTtl:
+			case optionTTL:
 				rn.options["ttl"] = value
 			default:
 				rn.options[name] = value

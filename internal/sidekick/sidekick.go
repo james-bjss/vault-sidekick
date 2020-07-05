@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package sidekick
 
 import (
 	"fmt"
@@ -32,7 +32,8 @@ var (
 	gitsha  = ""
 )
 
-func main() {
+// Run executes the sidekick
+func Run() {
 	version := fmt.Sprintf("%s (git+sha %s)", release, gitsha)
 	// step: parse and validate the command line / environment options
 	if err := parseOptions(); err != nil {

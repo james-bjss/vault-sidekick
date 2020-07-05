@@ -1,3 +1,5 @@
+// Package sidekick the main vault-sidekick package
+
 /*
 Copyright 2015 Home Office All rights reserved.
 
@@ -14,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package sidekick
 
 import (
 	"time"

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package sidekick
 
 import (
 	"crypto/tls"
@@ -63,6 +63,7 @@ type VaultEvent struct {
 	Type EventType
 }
 
+// EventType is the numberic event type
 type EventType int
 
 const (

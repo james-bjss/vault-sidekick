@@ -1,3 +1,5 @@
+// Package sidekick the main vault-sidekick package
+
 /*
 Copyright 2015 Home Office All rights reserved.
 
@@ -52,8 +54,8 @@ const (
 	// to updates for this resource. If non-zero, a random value between 0 and
 	// maxJitter will be subtracted from the update period.
 	optionMaxJitter = "jitter"
-	// optionTtl specifies requested Time To Live for use with the PKI Backend
-	optionTtl = "ttl"
+	// optionTTL specifies requested Time To Live for use with the PKI Backend
+	optionTTL = "ttl"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )

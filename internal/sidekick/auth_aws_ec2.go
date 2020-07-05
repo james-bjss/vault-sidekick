@@ -1,3 +1,5 @@
+// Package sidekick the main vault-sidekick package
+
 /*
 Copyright 2015 Home Office All rights reserved.
 
@@ -14,32 +16,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package sidekick
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/vault/api"
 )
 
-// gcp authentication plugin
-type authGCPGCEPlugin struct {
+// aws authentication plugin
+type authAWSEC2Plugin struct {
 	// the vault client
 	client *api.Client
 }
 
-// NewGCPGCEPlugin creates a new User Token plugin
-func NewGCPGCEPlugin(client *api.Client) AuthInterface {
-	return &authGCPGCEPlugin{
+// NewAWSEC2Plugin creates a new User Token plugin
+func NewAWSEC2Plugin(client *api.Client) AuthInterface {
+	return &authAWSEC2Plugin{
 		client: client,
 	}
 }
 
 // Create retrieves the token from an environment variable or file
-func (r authGCPGCEPlugin) Create(cfg *vaultAuthOptions) (string, error) {
+func (r authAWSEC2Plugin) Create(cfg *vaultAuthOptions) (string, error) {
 	role := os.Getenv("VAULT_SIDEKICK_ROLE_ID")
 	if cfg.FileName != "" {
 		content, err := readConfigFile(cfg.FileName, cfg.FileFormat)
@@ -50,16 +52,26 @@ func (r authGCPGCEPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 		role = content.RoleID
 	}
 
-	jwtToken, err := getGCPServiceAccountToken(role)
+	identity, err := getAWSIdentityDocument()
 	if err != nil {
 		return "", err
 	}
+	pkcs := strings.Replace(string(identity), "\n", "", -1)
 	payload := map[string]interface{}{
-		"role": role,
-		"jwt":  string(jwtToken),
+		"role":  role,
+		"pkcs7": pkcs,
 	}
 
-	resp, err := r.client.Logical().Write("auth/gcp/login", payload)
+	nonceFile := os.Getenv("VAULT_SIDEKICK_NONCE_FILE")
+	nonce, err := ioutil.ReadFile(nonceFile)
+	if err != nil {
+		return "", err
+	}
+	if string(nonce) != "" {
+		payload["nonce"] = string(nonce)
+	}
+
+	resp, err := r.client.Logical().Write("auth/aws/login", payload)
 	if err != nil {
 		return "", err
 	}
@@ -67,15 +79,8 @@ func (r authGCPGCEPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	return resp.Auth.ClientToken, nil
 }
 
-// getGCPServiceAccountToken retrieves a JWT token from GCP metadata service
-func getGCPServiceAccountToken(role string) ([]byte, error) {
-	// Vault GCP auth backend only parses vault/<role> from aud
-	url := fmt.Sprintf("http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=http://localhost/vault/%s&format=full", role)
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Metadata-Flavor", "Google")
-
-	resp, err := client.Do(req)
+func getAWSIdentityDocument() ([]byte, error) {
+	resp, err := http.Get("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")
 	if err != nil {
 		return nil, err
 	}
